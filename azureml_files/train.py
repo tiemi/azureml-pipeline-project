@@ -1,3 +1,4 @@
+import sklearn
 import joblib
 import argparse
 import numpy as np
@@ -21,14 +22,14 @@ def get_parsed_args():
 	return parser.parse_args()
 
 def log_arguments(args, dataset, run):
-    run.log('dataset_name', dataset.name)
+	run.log('dataset_name', dataset.name)
 	run.log('dataset_version', dataset.version)
-    run.log('test_size', args.test_size)
-    run.log('random_state_test', args.random_state_test)
-    run.log('random_state_model', args.random_state_model)
-    run.log('max_leaf_nodes', args.max_leaf_nodes)
+	run.log('test_size', args.test_size)
+	run.log('random_state_test', args.random_state_test)
+	run.log('random_state_model', args.random_state_model)
+	run.log('max_leaf_nodes', args.max_leaf_nodes)
 
-def log_results(model_accuracy, matrix, labels, run):
+def log_results(model_accuracy, output_folder, model_name, matrix, labels, run):
 	run.log('model_accuracy', model_accuracy)
 	run.log_image('Confusion Matrix Plot', plot=create_confusion_matrix_plot(matrix, labels))
 	model = Model.register(
@@ -36,7 +37,7 @@ def log_results(model_accuracy, matrix, labels, run):
 		model_path=output_folder,
 		model_name=model_name,
 		model_framework=Model.Framework.SCIKITLEARN,
-        model_framework_version=sklearn.__version__,
+		model_framework_version=sklearn.__version__,
 		tags={'Training context': 'Pipeline'}
 	)
 	run.log('model_name', model.name)
@@ -54,13 +55,13 @@ def create_confusion_matrix_plot(matrix, labels):
 	return plt
 
 def train_decision_tree(max_leaf_nodes, random_state, X_train, y_train):
-    iris_classifier = DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes, random_state=random_state)
-    iris_classifier.fit(X_train, y_train)
-    return iris_classifier
+	iris_classifier = DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes, random_state=random_state)
+	iris_classifier.fit(X_train, y_train)
+	return iris_classifier
 
 def predict(model, X_test):
-    y_prediction = model.predict(X_test)
-    return y_prediction
+	y_prediction = model.predict(X_test)
+	return y_prediction
 
 def save_model(model, model_name, output_folder):
 	output_path = output_folder + '/{}.pkl'.format(model_name)
@@ -77,7 +78,7 @@ def main(args, run, pd_dataset):
 	labels = y.unique()
 	matrix = confusion_matrix(y_test, y_prediction, labels)
 	save_model(model, args.model_name, args.output_folder)
-	log_results(model_accuracy, matrix, labels, run)
+	log_results(model_accuracy, args.output_folder, args.model_name, matrix, labels, run)
 
 if __name__ == '__main__':
 	run = Run.get_context()
